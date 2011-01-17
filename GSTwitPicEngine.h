@@ -12,7 +12,6 @@
 
 #import "ASIHTTPRequest.h"
 
-
 // Define these API credentials as per your applicationss.
 
 // Get here: http://twitter.com/apps
@@ -27,9 +26,9 @@
 
 // Enable one of the JSON Parsing libraries that the project has.
 // Disable all to get raw string as response in delegate call to parse yourself.
-#define TWITPIC_USE_YAJL 1
+#define TWITPIC_USE_YAJL 0
 #define TWITPIC_USE_SBJSON 0
-#define TWITPIC_USE_TOUCHJSON 0
+#define TWITPIC_USE_TOUCHJSON 1
 #define TWITPIC_API_FORMAT @"json"
 
 //  Implement XML here if you wish to.

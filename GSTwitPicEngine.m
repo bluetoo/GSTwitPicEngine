@@ -163,7 +163,8 @@
         response = [responseString JSONValue];
 #elif TWITPIC_USE_TOUCHJSON
         NSError *error = nil;
-        response = [[CJSONDeserializer deserializer] deserialize:responseString error:&error];
+
+        response = [[CJSONDeserializer deserializer] deserialize:[responseString dataUsingEncoding:NSUTF8StringEncoding] error:&error];
         if (error != nil) {
           @throw([NSException exceptionWithName:@"TOUCHJSONParsingException" reason:[error localizedFailureReason] userInfo:[error userInfo]]);
         }
