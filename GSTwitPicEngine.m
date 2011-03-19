@@ -157,20 +157,20 @@
       responseString = [request responseString];
       
       @try {
-#if TWITPIC_USE_YAJL
+        #if TWITPIC_USE_YAJL
         response = [responseString yajl_JSON];
-#elif TWITPIC_USE_SBJSON
+        #elif TWITPIC_USE_SBJSON
         response = [responseString JSONValue];
-#elif TWITPIC_USE_TOUCHJSON
+        #elif TWITPIC_USE_TOUCHJSON
         NSError *error = nil;
 
         response = [[CJSONDeserializer deserializer] deserialize:[responseString dataUsingEncoding:NSUTF8StringEncoding] error:&error];
         if (error != nil) {
           @throw([NSException exceptionWithName:@"TOUCHJSONParsingException" reason:[error localizedFailureReason] userInfo:[error userInfo]]);
         }
-// TODO: Implemented XML Parsing.
-// #elif TWITPIC_USE_LIBXML
-#endif
+        // TODO: Implemented XML Parsing.
+        // #elif TWITPIC_USE_LIBXML
+        #endif
       }
       @catch (NSException *e) {
         NSLog(@"Error while parsing TwitPic response. Does the project really have the parsing library specified? %@.", e);
@@ -206,26 +206,26 @@
 }
 
 
-- (void)requestFailed:(ASIHTTPRequest *)request {
-  NSMutableDictionary *delegateResponse = [[[NSMutableDictionary alloc] init] autorelease];
-  
-  [delegateResponse setObject:request forKey:@"request"];
-  
-  switch ([request responseStatusCode]) {
-    case 401:
-      // Twitter.com could be down or slow. Or your request took too long to reach twitter.com authentication verification via twitpic.com.
-      // TODO: Attempt to try again?
-      [delegateResponse setObject:@"Timed out verifying authentication token with Twitter.com. This could be a problem with TwitPic servers. Try again later." forKey:@"errorDescription"];
-      
-      break;
-    default:
-      [delegateResponse setObject:@"Request failed." forKey:@"errorDescription"];
-      break;
-  }
-  
-	if ([self _isValidDelegateForSelector:@selector(twitpicDidFailUpload:)]) {
-		[_delegate twitpicDidFailUpload:delegateResponse];
-  }
+- (void)requestFailed:(ASIHTTPRequest *)request
+{
+    NSMutableDictionary *delegateResponse = [[[NSMutableDictionary alloc] init] autorelease];
+    [delegateResponse setObject:request forKey:@"request"];
+
+    switch ([request responseStatusCode]) {
+        case 401:
+            // Twitter.com could be down or slow. Or your request took too long to reach twitter.com authentication verification via twitpic.com.
+            // TODO: Attempt to try again?
+            [delegateResponse setObject:@"Timed out verifying authentication token with Twitter.com. This could be a problem with TwitPic servers. Try again later." forKey:@"errorDescription"];
+
+            break;
+        default:
+            [delegateResponse setObject:@"Request failed." forKey:@"errorDescription"];
+            break;
+    }
+
+    if ([self _isValidDelegateForSelector:@selector(twitpicDidFailUpload:)]) {
+        [_delegate twitpicDidFailUpload:delegateResponse];
+    }
 }
 
 
