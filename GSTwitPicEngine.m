@@ -17,8 +17,8 @@
 #elif TWITPIC_USE_TOUCHJSON
 #import "CJSONDeserializer.h"
 
-//  #elif TWITPIC_USE_LIBXML
-//    #include <libxml/xmlreader.h>
+#elif TWITPIC_USE_LIBXML
+#include <libxml/xmlreader.h>
 #endif
 
 #import "ASIFormDataRequest.h"
@@ -68,65 +68,136 @@
 
 
 - (void)uploadPicture:(UIImage *)picture {
-  [self uploadPicture:picture withMessage:@""];
+    [self uploadPicture:picture withMessage:@""];
 }
-
 
 - (void)uploadPicture:(UIImage *)picture withMessage:(NSString *)message {
-  if ([TWITPIC_API_VERSION isEqualToString:@"1"]) {
-    // TwitPic OAuth.
-    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://api.twitpic.com/1/upload.%@", TWITPIC_API_FORMAT]];
-    
-    ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:url];
-    
-    [request addPostValue:TWITPIC_API_KEY forKey:@"key"];
-    [request addPostValue:TWITTER_OAUTH_CONSUMER_KEY forKey:@"consumer_token"];
-    [request addPostValue:TWITTER_OAUTH_CONSUMER_SECRET forKey:@"consumer_secret"];
-    [request addPostValue:[_accessToken key] forKey:@"oauth_token"];
-    [request addPostValue:[_accessToken secret] forKey:@"oauth_secret"];
-    [request addPostValue:message forKey:@"message"];
-    [request addData:UIImageJPEGRepresentation(picture, 0.8) forKey:@"media"];
-    
-    request.requestMethod = @"POST";
-    
-    [_queue addOperation:request];
-    [_queue go];
-  }
-  else {
-    // Twitter OAuth Echo.
-    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://api.twitpic.com/2/upload.%@", TWITPIC_API_FORMAT]];
-    
-    OAConsumer *consumer = [[[OAConsumer alloc] initWithKey:TWITTER_OAUTH_CONSUMER_KEY secret:TWITTER_OAUTH_CONSUMER_SECRET] autorelease];
-    
-    // NSLog(@"consumer: %@", consumer);
-    
-    OARequestHeader *requestHeader = [[[OARequestHeader alloc] initWithProvider:@"https://api.twitter.com/1/account/verify_credentials.json"
-                                                                         method:@"GET"
-                                                                       consumer:consumer
-                                                                          token:_accessToken
-                                                                          realm:@"http://api.twitter.com/"] autorelease];
-    
-    NSString *oauthHeaders = [requestHeader generateRequestHeaders];
-    
-    ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:url];
-    [request setUserInfo:[NSDictionary dictionaryWithObject:message forKey:@"message"]];
-    
-    [request addRequestHeader:@"X-Verify-Credentials-Authorization" value:oauthHeaders];
-    [request addRequestHeader:@"X-Auth-Service-Provider" value:@"https://api.twitter.com/1/account/verify_credentials.json"];
-    
-    [request addPostValue:TWITPIC_API_KEY forKey:@"key"];
-    [request addPostValue:message forKey:@"message"];
-    [request addData:UIImageJPEGRepresentation(picture, 0.8) forKey:@"media"];
-    
-    request.requestMethod = @"POST";
-    
-    // NSLog(@"requestHeaders: %@", [request requestHeaders]);
-    
-    [_queue addOperation:request];
-    [_queue go];
-  }
+    if ([TWITPIC_API_VERSION isEqualToString:@"1"]) {
+        // TwitPic OAuth.
+        NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://api.twitpic.com/1/upload.%@", TWITPIC_API_FORMAT]];
+        
+        ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:url];
+        [request setUploadProgressDelegate:self];
+        [request setDownloadProgressDelegate:self];
+
+        
+        [request addPostValue:TWITPIC_API_KEY forKey:@"key"];
+        [request addPostValue:TWITTER_OAUTH_CONSUMER_KEY forKey:@"consumer_token"];
+        [request addPostValue:TWITTER_OAUTH_CONSUMER_SECRET forKey:@"consumer_secret"];
+        [request addPostValue:[_accessToken key] forKey:@"oauth_token"];
+        [request addPostValue:[_accessToken secret] forKey:@"oauth_secret"];
+        [request addPostValue:message forKey:@"message"];
+        [request addData:UIImageJPEGRepresentation(picture, 0.8) forKey:@"media"];
+        
+        request.requestMethod = @"POST";
+        
+        [_queue addOperation:request];
+        [_queue go];
+    }
+    else {
+        // Twitter OAuth Echo.
+        NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://api.twitpic.com/2/upload.%@", TWITPIC_API_FORMAT]];
+        
+        OAConsumer *consumer = [[[OAConsumer alloc] initWithKey:TWITTER_OAUTH_CONSUMER_KEY secret:TWITTER_OAUTH_CONSUMER_SECRET] autorelease];
+        
+        // NSLog(@"consumer: %@", consumer);
+        
+        OARequestHeader *requestHeader = [[[OARequestHeader alloc] initWithProvider:@"https://api.twitter.com/1/account/verify_credentials.json"
+                                                                             method:@"GET"
+                                                                           consumer:consumer
+                                                                              token:_accessToken
+                                                                              realm:@"http://api.twitter.com/"] autorelease];
+        
+        NSString *oauthHeaders = [requestHeader generateRequestHeaders];
+        
+        ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:url];
+        [request setUserInfo:[NSDictionary dictionaryWithObject:message forKey:@"message"]];
+        [request setUploadProgressDelegate:self];
+        [request setDownloadProgressDelegate:self];
+        [request setBytesSentBlock:^(unsigned long long size, unsigned long long total) {
+            NSLog(@"Picture Bytes sent: %llu total: %llu", size, total);
+        }];
+        
+        [request addRequestHeader:@"X-Verify-Credentials-Authorization" value:oauthHeaders];
+        [request addRequestHeader:@"X-Auth-Service-Provider" value:@"https://api.twitter.com/1/account/verify_credentials.json"];
+        
+        [request addPostValue:TWITPIC_API_KEY forKey:@"key"];
+        [request addPostValue:message forKey:@"message"];
+        [request addData:UIImageJPEGRepresentation(picture, 0.8) forKey:@"media"];
+        
+        request.requestMethod = @"POST";
+        
+        // NSLog(@"requestHeaders: %@", [request requestHeaders]);
+        
+        [_queue addOperation:request];
+        [_queue go];
+    }
 }
 
+
+- (void)uploadVideo:(NSData *)videoData {
+    [self uploadVideo:videoData withMessage:@""];
+}
+
+- (void)uploadVideo:(NSData *)videoData withMessage:(NSString *)message {
+    if ([TWITPIC_API_VERSION isEqualToString:@"1"]) {
+        // TwitPic OAuth.
+        NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://api.twitpic.com/1/upload.%@", TWITPIC_API_FORMAT]];
+        
+        ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:url];
+        [request setUploadProgressDelegate:self];
+        [request setDownloadProgressDelegate:self];
+        
+        [request addPostValue:TWITPIC_API_KEY forKey:@"key"];
+        [request addPostValue:TWITTER_OAUTH_CONSUMER_KEY forKey:@"consumer_token"];
+        [request addPostValue:TWITTER_OAUTH_CONSUMER_SECRET forKey:@"consumer_secret"];
+        [request addPostValue:[_accessToken key] forKey:@"oauth_token"];
+        [request addPostValue:[_accessToken secret] forKey:@"oauth_secret"];
+        [request addPostValue:message forKey:@"message"];
+        [request addData:videoData forKey:@"media"];
+        
+        request.requestMethod = @"POST";
+        
+        [_queue addOperation:request];
+        [_queue go];
+    }
+    else {
+        // Twitter OAuth Echo.
+        NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://api.twitpic.com/2/upload.%@", TWITPIC_API_FORMAT]];
+        
+        OAConsumer *consumer = [[[OAConsumer alloc] initWithKey:TWITTER_OAUTH_CONSUMER_KEY secret:TWITTER_OAUTH_CONSUMER_SECRET] autorelease];
+        
+        // NSLog(@"consumer: %@", consumer);
+        
+        OARequestHeader *requestHeader = [[[OARequestHeader alloc] initWithProvider:@"https://api.twitter.com/1/account/verify_credentials.json"
+                                                                             method:@"GET"
+                                                                           consumer:consumer
+                                                                              token:_accessToken
+                                                                              realm:@"http://api.twitter.com/"] autorelease];
+        
+        NSString *oauthHeaders = [requestHeader generateRequestHeaders];
+        
+        ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:url];
+        [request setUserInfo:[NSDictionary dictionaryWithObject:message forKey:@"message"]];
+        [request setUploadProgressDelegate:self];
+        [request setDownloadProgressDelegate:self];
+        [request setBytesSentBlock:^(unsigned long long size, unsigned long long total) {
+            NSLog(@"Video Bytes sent: %llu total: %llu", size, total);
+        }];
+        
+        [request addRequestHeader:@"X-Verify-Credentials-Authorization" value:oauthHeaders];
+        [request addRequestHeader:@"X-Auth-Service-Provider" value:@"https://api.twitter.com/1/account/verify_credentials.json"];
+        
+        [request addPostValue:TWITPIC_API_KEY forKey:@"key"];
+        [request addPostValue:message forKey:@"message"];
+        [request addData:videoData forKey:@"media"];
+        
+        request.requestMethod = @"POST";
+        
+        [_queue addOperation:request];
+        [_queue go];
+    }
+}
 
 #pragma mark -
 #pragma mark OAuth
@@ -146,6 +217,8 @@
   
   [delegateResponse setObject:request forKey:@"request"];
   
+  NSInteger result = [request responseStatusCode];
+  NSLog(@"response %i message: %@", result, [request responseString]);
   switch ([request responseStatusCode]) {
     case 200:
     {
@@ -210,6 +283,9 @@
 {
     NSMutableDictionary *delegateResponse = [[[NSMutableDictionary alloc] init] autorelease];
     [delegateResponse setObject:request forKey:@"request"];
+    
+    NSInteger result = [request responseStatusCode];
+    NSLog(@"requestFailed %i message: %@", result, [request responseString]);
 
     switch ([request responseStatusCode]) {
         case 401:
@@ -228,5 +304,17 @@
     }
 }
 
+#pragma mark -
+#pragma mark ASIHTTPRequest Progress Delegates
+
+- (void)request:(ASIHTTPRequest *)request didReceiveBytes:(long long)bytes
+{
+    NSLog(@"%s: %llu", __FUNCTION__, bytes);
+}
+
+- (void)request:(ASIHTTPRequest *)request didSendBytes:(long long)bytes
+{
+    NSLog(@"%s: %llu", __FUNCTION__, bytes);
+}
 
 @end

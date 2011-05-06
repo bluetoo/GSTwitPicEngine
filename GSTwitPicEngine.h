@@ -26,22 +26,34 @@
 
 // Enable one of the JSON Parsing libraries that the project has.
 // Disable all to get raw string as response in delegate call to parse yourself.
+#ifndef TWITPIC_USE_YAJL
 #define TWITPIC_USE_YAJL 0
-#define TWITPIC_USE_SBJSON 0
-#define TWITPIC_USE_TOUCHJSON 1
-#define TWITPIC_API_FORMAT @"json"
+#endif
 
-//  Implement XML here if you wish to.
-//  #define TWITPIC_USE_LIBXML 0
-//  #if TWITPIC_USE_LIBXML
-//    #define TWITPIC_API_FORMAT @"xml"
-//  #endif
+#ifndef TWITPIC_USE_SBJSON
+#define TWITPIC_USE_SBJSON 0
+#endif
+
+#ifndef TWITPIC_USE_TOUCHJSON
+#define TWITPIC_USE_TOUCHJSON 0
+#endif
+
+#ifndef TWITPIC_USE_LIBXML
+#define TWITPIC_USE_LIBXML 0
+#endif
+
+#if TWITPIC_USE_LIBXML
+    #define TWITPIC_API_FORMAT @"xml"
+#else
+    #define TWITPIC_API_FORMAT @"json"
+#endif
 
 
 @protocol GSTwitPicEngineDelegate
 
 - (void)twitpicDidFinishUpload:(NSDictionary *)response;
 - (void)twitpicDidFailUpload:(NSDictionary *)error;
+- (void)twitpicProgressUpdated:(NSInteger)percentComplete;
 
 @end
 
@@ -62,6 +74,9 @@
 
 - (void)uploadPicture:(UIImage *)picture;
 - (void)uploadPicture:(UIImage *)picture withMessage:(NSString *)message;
+
+- (void)uploadVideo:(NSData *)videoData;
+- (void)uploadVideo:(NSData *)videoData withMessage:(NSString *)message;
 
 @end
 
