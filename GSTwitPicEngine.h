@@ -21,8 +21,6 @@
 // Get here: http://dev.twitpic.com/apps/
 #define TWITPIC_API_KEY kTwitPicAPIKey
 
-// TwitPic API Version: http://dev.twitpic.com/docs/
-#define TWITPIC_API_VERSION @"2"
 
 // Enable one of the JSON Parsing libraries that the project has.
 // Disable all to get raw string as response in delegate call to parse yourself.
@@ -72,8 +70,13 @@
 + (GSTwitPicEngine *)twitpicEngineWithDelegate:(NSObject *)theDelegate;
 - (GSTwitPicEngine *)initWithDelegate:(NSObject *)theDelegate;
 
+
 - (void)uploadPicture:(UIImage *)picture;
 - (void)uploadPicture:(UIImage *)picture withMessage:(NSString *)message;
+
+- (void)uploadPictureToTwitPic:(UIImage *)image;
+- (void)uploadPictureToYFrog:(UIImage *)image;
+- (void)uploadPicture:(UIImage *)picture withMessage:(NSString *)message toUrl:(NSString *)urlString withKey:(NSString *)key;
 
 - (void)uploadVideo:(NSData *)videoData;
 - (void)uploadVideo:(NSData *)videoData withMessage:(NSString *)message;
