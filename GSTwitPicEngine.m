@@ -126,8 +126,6 @@
     
     OAConsumer *consumer = [[[OAConsumer alloc] initWithKey:TWITTER_OAUTH_CONSUMER_KEY secret:TWITTER_OAUTH_CONSUMER_SECRET] autorelease];
     
-    // NSLog(@"consumer: %@", consumer);
-    
     OARequestHeader *requestHeader = [[[OARequestHeader alloc] initWithProvider:@"https://api.twitter.com/1/account/verify_credentials.json"
                                                                          method:@"GET"
                                                                        consumer:consumer
