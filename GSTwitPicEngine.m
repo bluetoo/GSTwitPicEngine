@@ -40,18 +40,20 @@
 
 
 - (GSTwitPicEngine *)initWithDelegate:(NSObject *)delegate {
-  if (self = [super init]) {
-    _delegate = delegate;
-    _queue = [[ASINetworkQueue alloc] init];
-    [_queue setMaxConcurrentOperationCount:1];
-    [_queue setShouldCancelAllRequestsOnFailure:NO];
-    [_queue setDelegate:self];
-    [_queue setRequestDidFinishSelector:@selector(requestFinished:)];
-    [_queue setRequestDidFailSelector:@selector(requestFailed:)];
-    // [_queue setQueueDidFinishSelector:@selector(queueFinished:)];
-  }
-  
-  return self;
+    self = [super init];
+    if (self)
+    {
+        _delegate = delegate;
+        _queue = [[ASINetworkQueue alloc] init];
+        [_queue setMaxConcurrentOperationCount:1];
+        [_queue setShouldCancelAllRequestsOnFailure:NO];
+        [_queue setDelegate:self];
+        [_queue setRequestDidFinishSelector:@selector(requestFinished:)];
+        [_queue setRequestDidFailSelector:@selector(requestFailed:)];
+        // [_queue setQueueDidFinishSelector:@selector(queueFinished:)];
+    }
+
+    return self;
 }
 
 
